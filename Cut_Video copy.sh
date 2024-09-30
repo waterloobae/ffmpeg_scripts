@@ -34,7 +34,7 @@ for RANGE in "${RANGES[@]}"; do
 
     # Trim the segment first
     SEGMENT_FILE="$TEMP_DIR/segment_$i.mp4"
-    ffmpeg -hwaccel auto -ss "$START_TIME" -to "$END_TIME" -i "$INPUT_FILE" -vsync 1 -async 1 -c copy "$SEGMENT_FILE" -y
+    ffmpeg -hwaccel auto -ss "$START_TIME" -to "$END_TIME" -i "$INPUT_FILE" -c copy "$SEGMENT_FILE" -y
 
     # Increment index
     i=$((i + 1))
@@ -49,7 +49,7 @@ for ((j=0; j<i; j++)); do
     if [ "$SEGMENT_DURATION" -le 2 ]; then
         # If the segment is less than or equal to 2 seconds, just process the whole segment
         FADED_SEGMENT_FILE="$TEMP_DIR/segment_${j}_faded.mp4"
-        ffmpeg -hwaccel auto -i "$SEGMENT_FILE" -vf "fade=t=in:st=0:d=1, fade=t=out:st=$(echo "$SEGMENT_DURATION - 1" | bc):d=1" -vsync 1 -async 1 -c:v libx264 -preset slow -crf 23 -c:a aac -b:a 192k "$FADED_SEGMENT_FILE" -y
+        ffmpeg -hwaccel auto -i "$SEGMENT_FILE" -vf "fade=t=in:st=0:d=1, fade=t=out:st=$(echo "$SEGMENT_DURATION - 1" | bc):d=1" -c:v libx264 -preset slow -crf 23 -c:a copy "$FADED_SEGMENT_FILE" -y
     else
         # Split the segment into three parts: first 1 second, middle, and last 1 second
         FIRST_PART="$TEMP_DIR/first_$j.mp4"
@@ -59,15 +59,15 @@ for ((j=0; j<i; j++)); do
         FADED_LAST="$TEMP_DIR/faded_last_$j.mp4"
 
         # Extract first and last one-second segments
-        ffmpeg -hwaccel auto -ss 0 -t 1 -i "$SEGMENT_FILE" -vsync 1 -async 1 -c copy "$FIRST_PART" -y
-        ffmpeg -hwaccel auto -ss $(echo "$SEGMENT_DURATION - 1" | bc) -t 1 -i "$SEGMENT_FILE" -vsync 1 -async 1 -c copy "$LAST_PART" -y
+        ffmpeg -hwaccel auto -ss 0 -t 1 -i "$SEGMENT_FILE" -c copy "$FIRST_PART" -y
+        ffmpeg -hwaccel auto -ss $(echo "$SEGMENT_DURATION - 1" | bc) -t 1 -i "$SEGMENT_FILE" -c copy "$LAST_PART" -y
 
         # Extract middle part (excluding the first and last seconds)
-        ffmpeg -hwaccel auto -ss 1 -t $(echo "$SEGMENT_DURATION - 2" | bc) -i "$SEGMENT_FILE" -vsync 1 -async 1 -c copy "$MIDDLE_PART" -y
+        ffmpeg -hwaccel auto -ss 1 -t $(echo "$SEGMENT_DURATION - 2" | bc) -i "$SEGMENT_FILE" -c copy "$MIDDLE_PART" -y
 
         # Apply fade effects to the first and last parts
-        ffmpeg -hwaccel auto -i "$FIRST_PART" -vf "fade=t=in:st=0:d=1" -vsync 1 -async 1 -c:v libx264 -preset slow -crf 23 -c:a aac -b:a 192k "$FADED_FIRST" -y
-        ffmpeg -hwaccel auto -i "$LAST_PART" -vf "fade=t=out:st=0:d=1" -vsync 1 -async 1 -c:v libx264 -preset slow -crf 23 -c:a aac -b:a 192k "$FADED_LAST" -y
+        ffmpeg -hwaccel auto -i "$FIRST_PART" -vf "fade=t=in:st=0:d=1" -c:v libx264 -preset slow -crf 23 -c:a copy "$FADED_FIRST" -y
+        ffmpeg -hwaccel auto -i "$LAST_PART" -vf "fade=t=out:st=0:d=1" -c:v libx264 -preset slow -crf 23 -c:a copy "$FADED_LAST" -y
     fi
 
     # Create a list of parts for concatenation
@@ -78,7 +78,7 @@ for ((j=0; j<i; j++)); do
 
     # Concatenate the parts into the final faded segment
     CONCATENATED_SEGMENT="$TEMP_DIR/segment_${j}_faded.mp4"
-    ffmpeg -f concat -safe 0 -i "$CONCAT_LIST" -vsync 1 -async 1 -c copy "$CONCATENATED_SEGMENT" -y
+    ffmpeg -f concat -safe 0 -i "$CONCAT_LIST" -c copy "$CONCATENATED_SEGMENT" -y
 done
 
 # Create a list of all faded segments for final concatenation
@@ -88,7 +88,7 @@ for ((k=0; k<i; k++)); do
 done
 
 # Concatenate all faded segments into the final output
-ffmpeg -f concat -safe 0 -i "$FINAL_CONCAT_LIST" -vsync 1 -async 1 -c copy "$OUTPUT_FILE" -y
+ffmpeg -f concat -safe 0 -i "$FINAL_CONCAT_LIST" -c copy "$OUTPUT_FILE" -y
 
 # Clean up temporary files
 rm -rf "$TEMP_DIR"

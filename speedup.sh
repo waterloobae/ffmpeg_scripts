@@ -45,8 +45,8 @@ process_sped_up_segment() {
     local end_time="$2"
     local segment_file="$TEMP_DIR/sped_${start_time//:/-}_${end_time//:/-}.mp4"
     
-    # Generate sped-up segment with 20x speed increase and re-encoding
-    ffmpeg -fflags +genpts -hwaccel auto -r "$FRAMERATE" -ss "$start_time" -to "$end_time" -i "$INPUT_FILE" -r "$FRAMERATE" -avoid_negative_ts make_zero -fps_mode cfr -filter_complex "[0:v]setpts=0.05*PTS[v];[0:a]atempo=2.0,atempo=2.0,atempo=2.5[a]" -map "[v]" -map "[a]" -c:v libx264 -preset slow -crf 18 -c:a aac -b:a 192k "$segment_file" -y
+    # Generate sped-up segment with 20x speed increase and re-encoding, and add silent audio
+    ffmpeg -fflags +genpts -hwaccel auto -r "$FRAMERATE" -ss "$start_time" -to "$end_time" -i "$INPUT_FILE" -r "$FRAMERATE" -avoid_negative_ts make_zero -fps_mode cfr -filter_complex "[0:v]setpts=0.05*PTS[v];anullsrc=r=44100:cl=stereo[dummy];[v][dummy]concat=n=1:v=1:a=1[v][a]" -map "[v]" -map "[a]" -c:v libx264 -preset medium -crf 18 -c:a aac -b:a 192k "$segment_file" -y
     if [ $? -ne 0 ]; then
         echo "Error processing sped-up segment: $start_time to $end_time"
         exit 1
@@ -80,11 +80,11 @@ for range in "${ranges[@]}"; do
     
     # Process the segment before the current range
     if [ "$previous_end_time" != "$start_time" ]; then
-        process_sped_up_segment "$previous_end_time" "$start_time"
+        process_normal_segment "$previous_end_time" "$start_time"
     fi
     
-    # Process the current range as normal speed
-    process_normal_segment "$start_time" "$end_time"
+    # Process the current range as sped-up segment
+    process_sped_up_segment "$start_time" "$end_time"
     
     # Update the previous end time
     previous_end_time="$end_time"
@@ -92,7 +92,7 @@ done
 
 # Process the segment after the last range
 if [ "$previous_end_time" != "$input_duration" ]; then
-    process_sped_up_segment "$previous_end_time" "$input_duration"
+    process_normal_segment "$previous_end_time" "$input_duration"
 fi
 
 # Concatenate all segments into the final output file
