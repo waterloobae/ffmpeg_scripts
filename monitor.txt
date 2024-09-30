@@ -1,0 +1,52 @@
+-- AppleScript to keep a network drive connected
+
+-- Define the network drive details
+-- Replace 'username', 'password', 'server_address', and 'share_name' with your network drive's details
+set networkDrive to "smb://username:password@server_address/share_name"
+set mountPoint to "/Volumes/share_name"
+
+-- Function to check if the network drive is connected
+on isDriveConnected()
+    try
+        -- Attempt to list the contents of the mount point
+        do shell script "ls " & quoted form of mountPoint
+        return true
+    on error
+        return false
+    end try
+end isDriveConnected
+
+-- Function to mount the network drive
+on mountDrive()
+    try
+        -- Create the mount point directory if it doesn't exist
+        do shell script "mkdir -p " & quoted form of mountPoint
+        -- Mount the network drive
+        do shell script "mount -t smbfs " & quoted form of networkDrive & " " & quoted form of mountPoint
+    on error errMsg
+        -- Display an error dialog if mounting fails
+        display dialog "Failed to mount network drive: " & errMsg
+    end try
+end mountDrive
+
+-- Main loop to keep the network drive connected
+repeat
+    -- Check if the network drive is connected
+    if not isDriveConnected() then
+        -- Attempt to mount the network drive if it is not connected
+        mountDrive()
+    end if
+    -- Check every 5 minutes (300 seconds)
+    delay 300
+end repeat
+
+-- Instructions:
+-- 1. Customize the Script:
+--    - Replace 'username', 'password', 'server_address', and 'share_name' with your network drive's details.
+-- 2. Save the Script:
+--    - Open the 'Script Editor' application on your Mac.
+--    - Copy and paste this script into the editor.
+--    - Save the script as an application ('File -> Export -> File Format: Application').
+-- 3. Run the Script:
+--    - Double-click the saved application to run it.
+--    - The script will run in the background, periodically checking if the network drive is connected and attempting to reconnect if it is not.
