@@ -22,14 +22,6 @@ FINAL_CONCAT_LIST="$TEMP_DIR/final_concat_list.txt"
 # Empty the concat list file
 > "$FINAL_CONCAT_LIST"
 
-# Function to convert mm:ss to seconds
-convert_to_seconds() {
-    local time=$1
-    local IFS=:  # Internal Field Separator
-    read -r mm ss <<< "$time"
-    echo $((10#${mm} * 60 + 10#${ss}))
-}
-
 # Function to process a normal speed segment
 process_normal_segment() {
     local start_time="$1"
@@ -37,7 +29,7 @@ process_normal_segment() {
     local segment_file="$TEMP_DIR/normal_${start_time}_${end_time}.mp4"
     
     # Generate normal speed segment with re-encoding
-    ffmpeg -hwaccel auto -r "$FRAMERATE" -ss "$start_time" -to "$end_time" -i "$INPUT_FILE" -r "$FRAMERATE" -c:v libx264 -preset medium -crf 18 -c:a aac -b:a 192k "$segment_file" -y
+    ffmpeg -hwaccel auto -r "$FRAMERATE" -ss "$start_time" -to "$end_time" -i "$INPUT_FILE" -r "$FRAMERATE" -c:v libx264 -preset slow -crf 18 -c:a aac -b:a 192k "$segment_file" -y
     if [ $? -ne 0 ]; then
         echo "Error processing normal segment: $start_time to $end_time"
         exit 1
@@ -54,7 +46,7 @@ process_sped_up_segment() {
     local segment_file="$TEMP_DIR/sped_${start_time}_${end_time}.mp4"
     
     # Generate sped-up segment with 20x speed increase and no audio
-    ffmpeg -hwaccel auto -r "$FRAMERATE" -ss "$start_time" -to "$end_time" -i "$INPUT_FILE" -r "$FRAMERATE" -filter:v "setpts=0.2*PTS" -an -c:v libx264 -preset medium -crf 18 "$segment_file" -y
+    ffmpeg -hwaccel auto -r "$FRAMERATE" -ss "$start_time" -to "$end_time" -i "$INPUT_FILE" -r "$FRAMERATE" -filter:v "setpts=0.05*PTS" -an -c:v libx264 -preset slow -crf 18 "$segment_file" -y
     if [ $? -ne 0 ]; then
         echo "Error processing sped-up segment: $start_time to $end_time"
         exit 1
@@ -70,24 +62,15 @@ while IFS= read -r line; do
     ranges+=("$line")
 done < "$RANGES_FILE"
 
-# Convert start and end times to seconds and store in an array
-ranges_in_seconds=()
+# Debug: Echo the ranges
+echo "Ranges:"
 for range in "${ranges[@]}"; do
-    IFS=' ' read -r start_time end_time <<< "$range"
-    start_time_seconds=$(convert_to_seconds "$start_time")
-    end_time_seconds=$(convert_to_seconds "$end_time")
-    ranges_in_seconds+=("$start_time_seconds $end_time_seconds")
-done
-
-# Debug: Echo the ranges in seconds
-echo "Ranges in seconds:"
-for range in "${ranges_in_seconds[@]}"; do
     echo "$range"
 done
 
 # Process each range
 previous_end_time=0
-for range in "${ranges_in_seconds[@]}"; do
+for range in "${ranges[@]}"; do
     IFS=' ' read -r start_time end_time <<< "$range"
     
     # Process the segment before the current range

@@ -11,7 +11,13 @@ INPUT_VIDEO=$1
 EXTRACTED_AUDIO="${INPUT_VIDEO%.*}_extracted_audio.mp3"
 ANONYMIZED_VIDEO="${INPUT_VIDEO%.*}_anonymized.mp4"
 FINAL_OUTPUT="${INPUT_VIDEO%.*}_blurred.mp4"
-FINAL_OUTPUT2="${INPUT_VIDEO%.*}_final.mp4"
+STABILIZED_OUTPUT="${FINAL_OUTPUT%.*}_final.mp4"
+TRANSFORM_FILE="${FINAL_OUTPUT%.*}_transform.trf"
+
+# Email details
+email_subject="Video Processing Completed"
+email_body="The video processing job has been completed."
+recipient_email="terry.bae@gmail.com"  # Replace with your email address
 
 # Activate the virtual environment
 source ~/venv/bin/activate
@@ -43,28 +49,31 @@ if [[ $? -ne 0 ]] || [ ! -s "$FINAL_OUTPUT" ]]; then
     exit 1
 fi
 
+# Step 1: Generate the stabilization transform file
+# echo "Generating stabilization transform file..."
+# 
+# ffmpeg  -hwaccel auto -i "$FINAL_OUTPUT" -vf vidstabdetect=shakiness=5:accuracy=15:result="$TRANSFORM_FILE" -f null -
+#  if [[ $? -ne 0 ]]; then
+#    echo "Error: Failed to generate stabilization transform file."
+#    deactivate
+#    exit 1
+# fi
+
+# Step 2: Apply the stabilization transform to the video
+# echo "Applying stabilization to the final output video..."
+# ffmpeg -hwaccel auto -i "$FINAL_OUTPUT" -vf vidstabtransform=input="$TRANSFORM_FILE",unsharp=5:5:0.8:3:3:0.4 -vcodec h264_videotoolbox -b:v 5000k -acodec copy "$STABILIZED_OUTPUT"
+# if [[ $? -ne 0 ]] || [ ! -s "$STABILIZED_OUTPUT" ]]; then
+#    echo "Error: Failed to stabilize the video or stabilized video is empty."
+#    deactivate
+#    exit 1
+# fi
+
 Clean up intermediate files
 echo "Cleaning up intermediate files..."
-rm "$EXTRACTED_AUDIO" "$ANONYMIZED_VIDEO"
+rm "$EXTRACTED_AUDIO" "$TRANSFORM_FILE"
 
 # Deactivate the virtual environment
 deactivate
-
-# Cut the first 2 seconds and apply fade-in effect
-ffmpeg -hwaccel auto -i "$FINAL_OUTPUT" -vf "fade=in:0:60" -c:a copy "part1.mp4"
-
-# Cut the last 2 seconds and apply fade-out effect
-DURATION=$(ffmpeg -i "$FINAL_OUTPUT" 2>&1 | grep "Duration" | cut -d ' ' -f 4 | sed s/,//)
-ffmpeg -hwaccel auto -i "$FINAL_OUTPUT" -vf "fade=out:st=$(echo "$DURATION - 2" | bc):d=2" -c:a copy "part3.mp4"
-
-# Extract the middle part of the video
-ffmpeg -hwaccel auto -i "$FINAL_OUTPUT" -ss 00:00:02 -to $(echo "$DURATION - 2" | bc) -c copy "part2.mp4"
-
-# Concatenate the three parts
-ffmpeg -f concat -safe 0 -i <(for f in part1.mp4 part2.mp4 part3.mp4; do echo "file '$PWD/$f'"; done) -c copy "$FINAL_OUTPUT2"
-
-# Clean up intermediate files
-rm part1.mp4 part2.mp4 part3.mp4
 
 # Send an email notification
 # echo -e "$email_body" | mail -s "$email_subject" "$recipient_email"

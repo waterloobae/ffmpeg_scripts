@@ -12,7 +12,7 @@ if [ $# -ne 2 ]; then
 fi
 
 # Construct the ffmpeg command
-FFMPEG_CMD="ffmpeg -i \"$INPUT_FILE\" -af \"afftdn=nf=-25\" -c:v copy \"$OUTPUT_FILE\""
+FFMPEG_CMD="ffmpeg -i \"$INPUT_FILE\" -af \"afftdn=nf=-40\" -c:v copy \"$OUTPUT_FILE\""
 
 # Echo the full ffmpeg command for debugging
 echo "Debug command: $FFMPEG_CMD"
