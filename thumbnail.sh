@@ -28,7 +28,7 @@ drawbox=x=0:y=80:w=iw:h=200:color=black@0.3:t=fill" -y "$TEMP_IMAGE_WITH_BOXES"
 # Add text to the image with boxes
 ffmpeg -i "$TEMP_IMAGE_WITH_BOXES" -vf "\
 drawtext=text='$TEXT1':fontcolor=white:fontsize=96:x=(w-text_w)/2:y=100:fontfile=/usr/share/fonts/truetype/msttcorefonts/Impact.ttf, \
-drawtext=text='$TEXT2':fontcolor=white:fontsize=44:box=1:boxcolor=black@0.9:boxborderw=5:x=50:y=(h-text_h)-30:fontfile=/usr/share/fonts/truetype/msttcorefonts/Impact.ttf, \
+drawtext=text='$TEXT2':fontcolor=white:fontsize=48:box=1:boxcolor=black@0.9:boxborderw=5:x=50:y=(h-text_h)-40:fontfile=/usr/share/fonts/truetype/msttcorefonts/Impact.ttf, \
 drawtext=text='$TEXT3':fontcolor=yellow:fontsize=52:x=(w-text_w)/2:y=200:fontfile=/usr/share/fonts/truetype/msttcorefonts/Impact.ttf" -y "$OUTPUT_THUMBNAIL"
 
 # Clean up the temporary image files
