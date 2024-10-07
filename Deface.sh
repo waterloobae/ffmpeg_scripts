@@ -70,7 +70,7 @@ fi
 
 Clean up intermediate files
 echo "Cleaning up intermediate files..."
-rm "$EXTRACTED_AUDIO" "$TRANSFORM_FILE"
+rm "$EXTRACTED_AUDIO" "$ANONYMIZED_VIDEO"
 
 # Deactivate the virtual environment
 deactivate

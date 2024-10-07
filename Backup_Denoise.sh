@@ -11,8 +11,8 @@ if [ $# -ne 2 ]; then
   exit 1
 fi
 
-# Construct the ffmpeg command
-FFMPEG_CMD="ffmpeg -i \"$INPUT_FILE\" -af \"afftdn=nf=-40\" -c:v copy \"$OUTPUT_FILE\""
+# Construct the ffmpeg command with improved noise reduction
+FFMPEG_CMD="ffmpeg -i \"$INPUT_FILE\" -af \"highpass=f=200, lowpass=f=3000, afftdn=nf=-25\" -c:v copy \"$OUTPUT_FILE\""
 
 # Echo the full ffmpeg command for debugging
 echo "Debug command: $FFMPEG_CMD"

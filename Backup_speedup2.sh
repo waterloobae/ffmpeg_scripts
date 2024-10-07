@@ -67,19 +67,10 @@ process_sped_up_segment() {
 }
 
 # Read the ranges file and store in an array
-# ranges=()
-# while IFS= read -r line; do
-#     ranges+=("$line")
-# done < "$RANGES_FILE"
-
-# Read the ranges file and store in an array, ignoring empty lines
 ranges=()
-while IFS= read -r line || [ -n "$line" ]; do
-    if [ -n "$line" ]; then
-        ranges+=("$line")
-    fi
+while IFS= read -r line; do
+    ranges+=("$line")
 done < "$RANGES_FILE"
-
 
 # Convert start and end times to seconds and store in an array
 ranges_in_seconds=()
@@ -103,14 +94,12 @@ for range in "${ranges_in_seconds[@]}"; do
     
     # Process the segment before the current range
     if [ "$previous_end_time" -lt "$start_time" ]; then
-        # process_sped_up_segment "$previous_end_time" "$start_time"
-        process_normal_segment "$previous_end_time" "$start_time"        
+        process_sped_up_segment "$previous_end_time" "$start_time"
     fi
     
     # Process the current range as normal speed
-    # process_normal_segment "$start_time" "$end_time"
-    process_sped_up_segment "$start_time" "$end_time"
-
+    process_normal_segment "$start_time" "$end_time"
+    
     # Update the previous end time
     previous_end_time="$end_time"
 done
@@ -119,8 +108,7 @@ done
 input_duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$INPUT_FILE")
 input_duration_seconds=$(printf "%.0f" "$input_duration")
 if [ "$previous_end_time" -lt "$input_duration_seconds" ]; then
-    # process_sped_up_segment "$previous_end_time" "$input_duration_seconds"
-    process_normal_segment "$previous_end_time" "$input_duration_seconds"    
+    process_sped_up_segment "$previous_end_time" "$input_duration_seconds"
 fi
 
 # Concatenate all segments into the final output file
