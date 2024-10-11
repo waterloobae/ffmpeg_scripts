@@ -16,7 +16,7 @@ if [ ! -d "$TEMP_DIR" ]; then
     exit 1
 fi
 
-OUTPUT_FILE="output.mp4"
+OUTPUT_FILE="speedup_output.mp4"
 FINAL_CONCAT_LIST="$TEMP_DIR/final_concat_list.txt"
 
 # Empty the concat list file
