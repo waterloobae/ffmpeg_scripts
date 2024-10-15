@@ -23,14 +23,15 @@ input_duration_seconds=$(printf "%.0f" "$input_duration")
 fade_duration=2
 
 # Generate 2-second mosaic fade-in from the first frame
-ffmpeg -hwaccel auto -i "$INPUT_FILE" -vf "select=eq(n\,0),loop=50:1:0,tile=1x1,fade=t=in:st=0:d=$fade_duration" -t $fade_duration -c:v libx264 -preset medium -crf 18 -an "fadein.mp4" -y
+ffmpeg -hwaccel auto -i "$INPUT_FILE" -vf "select=eq(n\,0),loop=50:1:0,tile=1x1,fade=t=in:st=0:d=$fade_duration" -t $fade_duration -c:v libx264 -preset medium -crf 18 -c:a aac -b:a 192k "fadein.mp4" -y
 
 # Generate 2-second fade-out from the last 2 seconds
-ffmpeg -hwaccel auto -sseof -$fade_duration -i "$INPUT_FILE" -t $fade_duration -vf "fade=t=out:st=0:d=$fade_duration" -c:v libx264 -preset medium -crf 18 -an "fadeout.mp4" -y
+ffmpeg -hwaccel auto -sseof -$fade_duration -i "$INPUT_FILE" -t $fade_duration -vf "fade=t=out:st=0:d=$fade_duration" -c:v libx264 -preset medium -crf 18 -c:a aac -b:a 192k "fadeout.mp4" -y
 
 # Generate the middle segment without the last 2 seconds
 middle_duration=$(echo "$input_duration - $fade_duration" | bc)
 ffmpeg -hwaccel auto -i "$INPUT_FILE" -t $middle_duration -c copy "middle.mp4" -y
+# ffmpeg -hwaccel auto -i "$INPUT_FILE" -t $middle_duration -c:v libx264 -preset medium -crf 18 -c:a aac -b:a 192k "middle.mp4" -y
 
 # Create a file list for concatenation
 CONCAT_LIST="concat_list.txt"

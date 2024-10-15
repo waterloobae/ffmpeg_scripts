@@ -53,7 +53,8 @@ fi
 
 # Add the extracted audio back to the anonymized video
 echo "Adding extracted audio back to the anonymized video..."
-ffmpeg -hwaccel auto -i "fade_output.mp4" -i "fade_output.mp3" -c copy -map 0:v:0 -map 1:a:0 "$FINAL_OUTPUT"
+# ffmpeg -hwaccel auto -i "fade_output.mp4" -i "fade_output.mp3" -c copy -map 0:v:0 -map 1:a:0 "$FINAL_OUTPUT"
+ffmpeg -hwaccel auto -i "fade_output.mp4" -i "fade_output.mp3" -c:v copy -c:a aac -b:a 192k -map 0:v:0 -map 1:a:0 "$FINAL_OUTPUT"
 if [[ $? -ne 0 ]] || [ ! -s "$FINAL_OUTPUT" ]; then
     echo "Error: Failed to add audio to the anonymized video or final video is empty."
     deactivate

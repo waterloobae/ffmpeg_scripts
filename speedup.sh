@@ -55,7 +55,7 @@ process_sped_up_segment() {
     
     # Generate sped-up segment with 20x speed increase and no audio
     # ffmpeg -hwaccel auto -r "$FRAMERATE" -ss "$start_time" -to "$end_time" -i "$INPUT_FILE" -r "$FRAMERATE" -filter:v "setpts=0.2*PTS" -an -c:v libx264 -preset medium -crf 18 "$segment_file" -y
-    ffmpeg -hwaccel auto -r "$FRAMERATE" -ss "$start_time" -to "$end_time" -i "$INPUT_FILE" -r "$FRAMERATE" -filter:v "setpts=0.2*PTS" -filter:a "atempo=5.0" -c:v libx264 -preset medium -crf 18 "$segment_file" -y
+    ffmpeg -hwaccel auto -r "$FRAMERATE" -ss "$start_time" -to "$end_time" -i "$INPUT_FILE" -r "$FRAMERATE" -filter:v "setpts=0.2*PTS" -filter:a "atempo=5.0" -c:v libx264 -preset medium -crf 18 -c:a aac -b:a 192k "$segment_file" -y
 
     if [ $? -ne 0 ]; then
         echo "Error processing sped-up segment: $start_time to $end_time"
