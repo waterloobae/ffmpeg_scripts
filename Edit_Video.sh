@@ -32,7 +32,10 @@ case $choice in
         read -p "Enter second input sound file: " INPUT_FILE2
         read -p "Enter output video file: " OUTPUT_FILE
         echo "Combining video and sound..."
-        ffmpeg -hwaccel auto -i "$INPUT_FILE1" -i "$INPUT_FILE2" -c copy -map 0:v:0 -map 1:a:0 "$OUTPUT_FILE"
+
+        # This command will combine the video and audio files
+        ffmpeg -hwaccel auto -i "$INPUT_FILE1" -i "$INPUT_FILE2" -c:v copy -c:a aac -b:a 256k -map 0:v:0 -map 1:a:0 "$OUTPUT_FILE"
+        # ffmpeg -hwaccel auto -i "$INPUT_FILE1" -i "$INPUT_FILE2" -c copy -map 0:v:0 -map 1:a:0 "$OUTPUT_FILE"
         ;;
     4)
         read -p "Enter start time 00:00:00 : " START_TIME

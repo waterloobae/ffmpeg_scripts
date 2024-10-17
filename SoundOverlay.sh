@@ -55,6 +55,15 @@ overlay_audio_on_video() {
     exit 1
   fi
 
+  # Extract the original sound track from the video
+  ORIGINAL_SOUND_TRACK="original_soundtrack.mp3"
+  ffmpeg -i "$VIDEO_FILE" -q:a 0 -map a "$ORIGINAL_SOUND_TRACK"
+
+  # Mute the original video
+  # MUTED_VIDEO="muted_video.mp4"
+  # ffmpeg -i "$VIDEO_FILE" -an -c:v copy "$MUTED_VIDEO"
+  # mv "$MUTED_VIDEO" "$VIDEO_FILE"
+
   # Get the duration of the video
   VIDEO_DURATION=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$VIDEO_FILE")
 
@@ -78,7 +87,12 @@ overlay_audio_on_video() {
   rm "$TEMP_AUDIO_LIST"
 
   # Overlay the repeated audio on the video
-  ffmpeg -i "$VIDEO_FILE" -i "$REPEATED_AUDIO" -c:v copy -map 0:v:0 -map 1:a:0 -shortest "$OUTPUT_VIDEO"
+  # Adjust the volume of the repeated audio
+  ffmpeg -i "$REPEATED_AUDIO" -filter:a "volume=0.1" "adjusted_audio.mp3"
+
+  # Overlay the adjusted audio on the video while keeping the original audio
+  ffmpeg -i "$VIDEO_FILE" -i "adjusted_audio.mp3" -filter_complex "[0:a][1:a]amix=inputs=2:duration=shortest" -c:v copy -map 0:v:0 -shortest "$OUTPUT_VIDEO"
+  # ffmpeg -i "$VIDEO_FILE" -i "$REPEATED_AUDIO" -c:v copy -map 0:v:0 -map 1:a:0 -shortest "$OUTPUT_VIDEO"
 
   echo "Output video saved as $OUTPUT_VIDEO"
   echo "Overlaying and repeating audio on video..."
