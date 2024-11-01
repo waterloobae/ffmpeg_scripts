@@ -88,11 +88,12 @@ overlay_audio_on_video() {
 
   # Overlay the repeated audio on the video
   # Adjust the volume of the repeated audio
-  ffmpeg -i "$REPEATED_AUDIO" -filter:a "volume=0.1" "adjusted_audio.mp3"
+  ffmpeg -i "$REPEATED_AUDIO" -filter:a "volume=0.5" "adjusted_audio.mp3"
+  # ffmpeg -i "$REPEATED_AUDIO" -filter:a "volume=2.0" "adjusted_audio.mp3"
 
   # Overlay the adjusted audio on the video while keeping the original audio
   ffmpeg -i "$VIDEO_FILE" -i "adjusted_audio.mp3" -filter_complex "[0:a][1:a]amix=inputs=2:duration=shortest" -c:v copy -map 0:v:0 -shortest "$OUTPUT_VIDEO"
-  # ffmpeg -i "$VIDEO_FILE" -i "$REPEATED_AUDIO" -c:v copy -map 0:v:0 -map 1:a:0 -shortest "$OUTPUT_VIDEO"
+  # ffmpeg -i "$VIDEO_FILE" -i "adjusted_audio.mp3" -c:v copy -map 0:v:0 -map 1:a:0 -shortest "$OUTPUT_VIDEO"
 
   echo "Output video saved as $OUTPUT_VIDEO"
   echo "Overlaying and repeating audio on video..."

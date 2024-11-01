@@ -44,6 +44,12 @@ done < "$TEXT_FILE"
 # Join all drawtext filters with commas
 drawtext_filters_string=$(IFS=,; echo "${drawtext_filters[*]}")
 
+# Check if drawtext_filters_string is not empty
+if [ -z "$drawtext_filters_string" ]; then
+  echo "No drawtext filters created. Please check the input text file."
+  exit 1
+fi
+
 # Debug: Print the drawtext filters string
 echo "Drawtext filters: $drawtext_filters_string"
 
@@ -53,5 +59,11 @@ if [ $? -ne 0 ]; then
   echo "Error applying text overlays"
   exit 1
 fi
+# Execute FFmpeg command with all drawtext filters
+# ffmpeg -hwaccel auto -i "$INPUT_FILE" -vf "$drawtext_filters_string" -c:a copy "$OUTPUT_FILE"
+# if [ $? -ne 0 ]; then
+#   echo "Error applying text overlays"
+#   exit 1
+# fi
 
 echo "Text overlay completed successfully. Output file: $OUTPUT_FILE"

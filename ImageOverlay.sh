@@ -58,11 +58,14 @@ overlay_multiple_images() {
   read -p "Enter video file path: " VIDEO_FILE
   read -p "Enter first image file path: " IMAGE1
   read -p "Enter second image file path: " IMAGE2
+  read -p "Enter third image file path: " IMAGE3
+  read -p "Enter fourth image file path: " IMAGE4
   read -p "Enter overlay position (x:y), e.g., 10:10: " overlay_position
+  read -p "Enter start time in seconds (e.g., 5): " start_time
 
   OUTPUT_FILE="overlay_multiple_output.mp4"
-  ffmpeg -i "$VIDEO_FILE" -i "$IMAGE1" -i "$IMAGE2" -filter_complex \
-  "[0][1]overlay=$overlay_position:enable='between(t,0,5)',[0][2]overlay=$overlay_position:enable='gt(t,5)'" \
+  ffmpeg -i "$VIDEO_FILE" -i "$IMAGE1" -i "$IMAGE2" -i "$IMAGE3" -i "$IMAGE4" -filter_complex \
+  "[0][1]overlay=$overlay_position:enable='between(t,$start_time,$((start_time+5)))',[0][2]overlay=$overlay_position:enable='between(t,$((start_time+5)),$((start_time+10)))',[0][3]overlay=$overlay_position:enable='between(t,$((start_time+10)),$((start_time+15)))',[0][4]overlay=$overlay_position:enable='between(t,$((start_time+15)),$((start_time+20)))'" \
   -codec:a copy "$OUTPUT_FILE"
   
   echo "Output video saved as $OUTPUT_FILE"
