@@ -13,8 +13,11 @@ if [ $# -ne 3 ]; then
 fi
 
 # Temporary directory for intermediate files
-TEMP_DIR=$(mktemp -d)
-FINAL_CONCAT_LIST="$TEMP_DIR/concat_list.txt"
+TEMP_DIR="./temp_$(date +%s)"
+mkdir -p "$TEMP_DIR"
+
+# FINAL_CONCAT_LIST="$TEMP_DIR/concat_list.txt"
+FINAL_CONCAT_LIST="concat_list.txt"
 
 # Function to convert mm:ss to seconds
 time_to_seconds() {
@@ -28,24 +31,26 @@ time_to_seconds() {
 process_range() {
     local start_time=$1
     local end_time=$2
-    local segment_file="$TEMP_DIR/segment_${start_time}_${end_time}.mp4"
+    local segment_file="$TEMP_DIR/segment_${start_time//:/_}_${end_time//:/_}.mp4"
     local fade_duration=2
 
     # Convert start and end times to seconds
     local start_seconds=$(time_to_seconds "$start_time")
     local end_seconds=$(time_to_seconds "$end_time")
 
-    # Extract the segment
-    ffmpeg -hwaccel auto -ss "$start_seconds" -to "$end_seconds" -i "$INPUT_FILE" -c:v libx264 -preset medium -crf 18 -c:a aac -b:a 192k "$segment_file" -y
+    # Extract the segment from the input file
+    ffmpeg -i "$INPUT_FILE" -ss "$start_time" -to "$end_time" -c copy "$segment_file" -y
 
     # Apply fade-in and fade-out effects
-    local fadein_file="$TEMP_DIR/fadein_${start_time}_${end_time}.mp4"
-    local fadeout_file="$TEMP_DIR/fadeout_${start_time}_${end_time}.mp4"
+    local fadein_file="$TEMP_DIR/fadein_${start_time//:/_}_${end_time//:/_}.mp4"
+    local fadeout_file="$TEMP_DIR/fadeout_${start_time//:/_}_${end_time//:/_}.mp4"
 
     ffmpeg -i "$segment_file" -vf "fade=t=in:st=0:d=$fade_duration" -c:v libx264 -preset medium -crf 18 -c:a aac -b:a 192k "$fadein_file" -y
     ffmpeg -i "$fadein_file" -vf "fade=t=out:st=$(echo "$end_seconds - $start_seconds - $fade_duration" | bc):d=$fade_duration" -c:v libx264 -preset medium -crf 18 -c:a aac -b:a 192k "$fadeout_file" -y
 
     # Add segment with fades to the list
+    # echo "file '$fadein_file'" >> "$FINAL_CONCAT_LIST"
+    # echo "file '$segment_file'" >> "$FINAL_CONCAT_LIST"    
     echo "file '$fadeout_file'" >> "$FINAL_CONCAT_LIST"
 }
 
@@ -73,5 +78,6 @@ fi
 
 # Clean up temporary files
 rm -rf "$TEMP_DIR"
+rm -f "$FINAL_CONCAT_LIST"
 
 echo "Processing complete. Output file: $OUTPUT_FILE"

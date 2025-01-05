@@ -13,6 +13,14 @@ CAPTIONS_FILE="$3"
 
 # Read the captions from the file
 CAPTIONS=$(cat "$CAPTIONS_FILE")
+# Escape special characters in captions
+CAPTIONS=$(echo "$CAPTIONS" | sed 's/[]\/$*.^|[]/\\&/g')
+CAPTIONS=$(echo "$CAPTIONS" | sed 's/\\/\\\\/g; s/:/\\:/g; s/,/\\,/g; s/=/\\=/g')
+CAPTIONS=$(echo "$CAPTIONS" | sed 's/-/\\-/g')
+# Escape single quotes in captions
+CAPTIONS=$(echo "$CAPTIONS" | sed "s/'/\\'/g")
+# Escape single quotes in captions
+CAPTIONS=$(echo "$CAPTIONS" | sed "s/'/\\\\'/g")
 
 # Get video dimensions
 VIDEO_WIDTH=$(ffprobe -v error -select_streams v:0 -show_entries stream=width -of csv=p=0 "$INPUT_VIDEO")
